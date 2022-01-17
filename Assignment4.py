@@ -9,11 +9,15 @@ from Assignment3 import plots
 
 np.random.seed(123)
 
-A = np.array([[1,0,1/params['sigma']],[-params['kappa'],1, 0],[0,0,1]])
+A = np.array([[1,0,1/params['sigma']],
+            [-params['kappa'],1, 0],
+            [0,0,1]])
 
-M = np.array([[1, 1/params['sigma'], 0], [0, params['beta'],0],[0,0,0]])
+M = np.array([[1, 1/params['sigma'], 0], 
+            [0, params['beta'],0],
+            [params['phi_2'],params['phi_1'],0]])
 
-D = np.array([[0,0,0],[0,0,0],[params['phi_2'],params['phi_1'], 0]])
+D = np.zeros((3,3))
 
 print(A)
 print(M)
@@ -38,29 +42,39 @@ print(F)
 def get_Q(A,M,F):
     return np.linalg.inv(A - M @ F)
 
+Q = get_Q(A, M, F)
+print(Q)
 
 # 4
 
 rho_e = 0.8
 
-Anew = np.array([[1,0,0,0],[0,1,0,1/params['sigma']],[-1,-params['kappa'],1, 0],[0,0,0,1]])
+Anew = np.array([[1,0,0,0],
+                [-1,1,0,1/params['sigma']],
+                [0,-params['kappa'],1, 0],
+                [0,0,0,1]])
 
-Mnew = np.array([[0,0,0,0],[0,1, 1/params['sigma'], 0], [0,0, params['beta'],0],[0,0,0,0]])
+Mnew = np.array([[0,0,0,0],
+                [0,1, 1/params['sigma'], 0], 
+                [0,0, params['beta'],0],
+                [0,params['phi_2'],params['phi_1'],0]])
 
-Dnew = np.array([[rho_e,0,0,0],[0,0,0,0],[0,0,0,0],[0,params['phi_2'],params['phi_1'], 0]])
+Dnew = np.zeros((4,4))
+Dnew[0,0] = rho_e
 
-def F_update(F, A = Anew, M = Mnew, D = Dnew):
-    return np.linalg.inv(A - M @ F) @ D
+#def F_update(F, A = Anew, M = Mnew, D = Dnew):
+ #   return np.linalg.inv(A - M @ F) @ D
 
-Fnew = F_update(np.random.randn(4,4))
+F_init = np.random.randn(4,4)
+
+Fnew = F_update(F_init, Anew, Mnew, Dnew)
 
 # 5
-i = 0
-while (abs(F - Fnew) > np.ones((4,4)) *1e-10).any():
+F = F_init
+while np.max(abs(F - Fnew)) > 1e-6:
     F = Fnew
-    Fnew = F_update(F)
-    #i += 1
-    #print(i)
+    Fnew = F_update(F, Anew, Mnew, Dnew)
+    
 
 F_final = Fnew
 print(F_final)
@@ -71,6 +85,12 @@ Q = get_Q(Anew, Mnew, F_final)
 print(Q)
 
 # 8
+
+C1 = F_final[:,0]
+C5 = Q[:,0]
+
+rho_e = 0.1
+
 N = 20
 eps = 0.01
 
